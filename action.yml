@@ -33,11 +33,44 @@ inputs:
     description: Pass --debug to Ogoron heal commands.
     required: false
     default: "false"
+  create-pr:
+    description: Create or update a pull request when healing changes repository files.
+    required: false
+    default: "false"
+  pr-branch:
+    description: Branch used for healed artifact changes.
+    required: false
+    default: ogoron/heal
+  pr-title:
+    description: Pull request title.
+    required: false
+    default: Heal Ogoron test artifacts
+  commit-message:
+    description: Commit message used for healed artifacts.
+    required: false
+    default: Heal Ogoron test artifacts
+  author-name:
+    description: Git author name for healed commit.
+    required: false
+    default: ogoron-bot
+  author-email:
+    description: Git author email for healed commit.
+    required: false
+    default: agents@ogoron.com
 
 outputs:
   ogoron-bin:
     description: Absolute path to the downloaded Ogoron executable.
     value: ${{ steps.install.outputs.ogoron-bin }}
+  changes-detected:
+    description: Whether healing changed repository files.
+    value: ${{ steps.heal.outputs.changes-detected }}
+  pull-request-url:
+    description: URL of the created or updated pull request, if any.
+    value: ${{ steps.pr.outputs.pull-request-url }}
+  branch-name:
+    description: Branch name used for healed artifacts.
+    value: ${{ inputs.pr-branch }}
 
 runs:
   using: composite
@@ -61,6 +94,21 @@ runs:
         INPUT_UNIT_API: ${{ inputs.unit-api }}
         INPUT_PROJECT: ${{ inputs.project }}
         INPUT_DEBUG: ${{ inputs.debug }}
+        INPUT_AUTHOR_NAME: ${{ inputs.author-name }}
+        INPUT_AUTHOR_EMAIL: ${{ inputs.author-email }}
         OGORON_PLAIN: "1"
         NO_COLOR: "1"
         CI: "1"
+
+    - id: pr
+      name: Create pull request
+      if: ${{ inputs.create-pr == 'true' && steps.heal.outputs.changes-detected == 'true' }}
+      uses: peter-evans/create-pull-request@v7
+      with:
+        token: ${{ env.GITHUB_TOKEN }}
+        branch: ${{ inputs.pr-branch }}
+        title: ${{ inputs.pr-title }}
+        commit-message: ${{ inputs.commit-message }}
+        body-path: ${{ steps.heal.outputs.pr-body-path }}
+        author: ${{ inputs.author-name }} <${{ inputs.author-email }}>
+        committer: ${{ inputs.author-name }} <${{ inputs.author-email }}>

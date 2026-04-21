@@ -24,15 +24,25 @@ Provide secrets via workflow `env`, not action inputs.
 | `cli-version` | no | `5.2.0` | Ogoron CLI release version to download. Versions older than `5.2.0` are rejected. |
 | `download-url` | no |  | Explicit Linux bundle URL override. |
 | `debug` | no | `false` | Pass `--debug` to Ogoron heal commands. |
+| `create-pr` | no | `false` | Create or update a pull request when healing changes repository files. |
+| `pr-branch` | no | `ogoron/heal` | Branch used for healed artifact changes. |
+| `pr-title` | no | `Heal Ogoron test artifacts` | Pull request title. |
+| `commit-message` | no | `Heal Ogoron test artifacts` | Commit message used for healed artifacts. |
+| `author-name` | no | `ogoron-bot` | Git author name for the healed commit. |
+| `author-email` | no | `agents@ogoron.com` | Git author email for the healed commit. |
 
 ## Outputs
 
 | Output | Description |
 | --- | --- |
 | `ogoron-bin` | Absolute path to the downloaded Ogoron executable. |
+| `changes-detected` | Whether healing changed repository files. |
+| `pull-request-url` | URL of the created or updated pull request, if any. |
+| `branch-name` | Branch name used for healed artifacts. |
 
 ## Notes
 
 - At least one of `ui`, `unit-api`, or `project` must be `true`.
 - `project=true` changes the `heal tests` invocation to project mode and therefore takes precedence over plain generated-batch execution for that branch.
 - `ui=true` can be combined with either generated or project heal-tests execution.
+- When `create-pr=true`, the action commits healed changes locally and then opens or updates a pull request through `peter-evans/create-pull-request`.
