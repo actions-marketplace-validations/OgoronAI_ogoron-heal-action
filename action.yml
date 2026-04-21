@@ -1,0 +1,66 @@
+name: Ogoron Heal
+description: Run Ogoron heal workflows for generated tests or project tests on Linux runners.
+author: OgoronAI
+branding:
+  icon: activity
+  color: orange
+
+inputs:
+  ui:
+    description: Run UI heal workflow for generated UI tests.
+    required: false
+    default: "false"
+  unit-api:
+    description: Run heal workflow for generated unit and API-adjacent test execution.
+    required: false
+    default: "false"
+  project:
+    description: Run heal tests in project mode (config paths.tests) instead of generated batches.
+    required: false
+    default: "false"
+  working-directory:
+    description: Repository directory where commands should run.
+    required: false
+    default: .
+  cli-version:
+    description: Ogoron CLI release version to download.
+    required: false
+    default: 5.2.0
+  download-url:
+    description: Explicit Linux bundle URL override.
+    required: false
+  debug:
+    description: Pass --debug to Ogoron heal commands.
+    required: false
+    default: "false"
+
+outputs:
+  ogoron-bin:
+    description: Absolute path to the downloaded Ogoron executable.
+    value: ${{ steps.install.outputs.ogoron-bin }}
+
+runs:
+  using: composite
+  steps:
+    - id: install
+      name: Install Ogoron
+      shell: bash
+      run: "${{ github.action_path }}/scripts/install-ogoron.sh"
+      env:
+        INPUT_CLI_VERSION: ${{ inputs.cli-version }}
+        INPUT_DOWNLOAD_URL: ${{ inputs.download-url }}
+
+    - id: heal
+      name: Run heal workflows
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: "${{ github.action_path }}/scripts/run-heal.sh"
+      env:
+        OGORON_BIN: ${{ steps.install.outputs.ogoron-bin }}
+        INPUT_UI: ${{ inputs.ui }}
+        INPUT_UNIT_API: ${{ inputs.unit-api }}
+        INPUT_PROJECT: ${{ inputs.project }}
+        INPUT_DEBUG: ${{ inputs.debug }}
+        OGORON_PLAIN: "1"
+        NO_COLOR: "1"
+        CI: "1"
