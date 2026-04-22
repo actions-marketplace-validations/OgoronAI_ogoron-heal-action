@@ -46,3 +46,16 @@ Provide secrets via workflow `env`, not action inputs.
 - `project=true` changes the `heal tests` invocation to project mode and therefore takes precedence over plain generated-batch execution for that branch.
 - `ui=true` can be combined with either generated or project heal-tests execution.
 - When `create-pr=true`, the action commits healed changes locally and then opens or updates a pull request through `peter-evans/create-pull-request`.
+
+## Related actions
+
+- [`Ogoron Setup`](https://github.com/OgoronAI/ogoron-setup-action) to bootstrap the repository before CI usage
+- [`Ogoron Generate`](https://github.com/OgoronAI/ogoron-generate-action) to create test artifacts that may later need healing
+- [`Ogoron Run`](https://github.com/OgoronAI/ogoron-run-action) to execute tests and surface failures before healing
+- [`Ogoron Exec`](https://github.com/OgoronAI/ogoron-exec-action) for custom remediation flows
+
+## Recommended flow
+
+1. Use `run` to surface failing generated or project tests.
+2. Run `heal` only after you understand the failing scope.
+3. Use `create-pr=true` when healed artifacts should be delivered back into the repository automatically.
